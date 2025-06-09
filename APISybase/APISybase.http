@@ -1,0 +1,6 @@
+@APISybase_HostAddress = http://localhost:5123
+
+GET {{APISybase_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
