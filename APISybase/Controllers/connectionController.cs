@@ -199,6 +199,64 @@ namespace APISybase.Controllers
             }
         }
 
+        public int triggerInsert(Int32 ulConnectionID, Int32 hConnection, String strTriggerName, String strTableName,
+                      Int32 ulEventType, Int32 ulTriggerType, Int32 ulRecNo)
+        {
+            AdsConnection conn = new AdsConnection("ConnectionHandle=" + hConnection.ToString());
+            AdsCommand cmd;
+            AdsCommand cmdNew;
+            AdsExtendedReader extReader;
+            AdsDataReader reader;
+
+            Guid guid = Guid.NewGuid();
+            string s = guid.ToString();
+            try
+            {
+                conn.Open();
+                cmd = conn.CreateCommand();
+                cmdNew = conn.CreateCommand();
+
+                cmd.CommandText = "SELECT * FROM __new";
+                reader = cmd.ExecuteReader();
+
+                cmdNew.CommandText = "select*from Card";
+                extReader = cmdNew.ExecuteExtendedReader();
+
+                //insert __net
+                extReader.AppendRecord();
+                reader.Read();
+                if (reader.IsDBNull(0))
+                {
+                    extReader.SetString(0, s);
+                }
+                else
+                {
+                    extReader.SetString(0, reader.GetString(0));
+                }
+
+                for (int i = 1; i < reader.FieldCount - 1; i++)
+                {
+                    if (!reader.IsDBNull(i))
+                    {
+                        extReader.SetValue(i, reader.GetValue(i));
+                    }
+                }
+                extReader.WriteRecord();
+                extReader.Close();
+                reader.Close();
+            }
+            catch (Exception ex) 
+            {
+                AdsCommand errCmd = conn.CreateCommand();
+                errCmd.CommandText = "INSERT INTO __error VALUES( 0, '" + ex.Message + "' )";
+                errCmd.ExecuteNonQuery();
+
+            }
+
+            //siempre retorna 0
+            return 0;
+        }
+
 
         public class Query
         {
